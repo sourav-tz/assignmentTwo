@@ -13,16 +13,23 @@ A containerized Python Flask application with a GitHub Actions CI workflow that 
 
 ## Bugs Found & Fixes Applied
 
-The original starter snippet failed to start (making the app unreachable) due to the following issues:
+When taking the teammate's starter files (`app.py` and `requirements.txt`) into Docker, the following issues prevent the app from running or being reachable and were addressed as follows:
 
+1. **Missing container configuration (`Dockerfile`)**
+   - **Problem:** Only `app.py` and `requirements.txt` were provided—there was no `Dockerfile` to set up the Python environment, install Flask, expose port `5000`, or run the application inside a container.
+   - **Fix:** Created `Dockerfile` using `python:3.12-slim`, setting `WORKDIR /app`, installing dependencies from `requirements.txt`, exposing port `5000`, and starting the server with `CMD ["python", "app.py"]`.
 
-1. **Missing `=` operator and indentation in `app.py`**
-   - **Problem:** `app Flask(__name__)` was missing `=`, and the bodies of `home()`, `health()`, and `if __name__ == "__main__":` were not indented (`IndentationError`).
-   - **Fix:** Fixed `app = Flask(__name__)` and properly indented the route handlers and `app.run(host="0.0.0.0", port=5000)`.
+2. **Container port publishing & macOS port `5000` conflict**
+   - **Problem:** For a containerized Flask app to be reachable from the host, the server must bind to `0.0.0.0` (rather than `127.0.0.1`) and container port `5000` must be published via `-p` during `docker run`. On macOS, host port `5000` is also commonly occupied by AirPlay Receiver, which makes `localhost:5000` unreachable or return a non-Flask response.
+   - **Fix:** Kept `app.run(host="0.0.0.0", port=5000)` in `app.py`, added `EXPOSE 5000` in `Dockerfile`, and published the port with `-p 5000:5000` (or `-p 5001:5000` on macOS when AirPlay Receiver occupies port `5000`).
 
-2. **Host binding and port publishing for container access**
-   - **Problem:** A Flask app inside Docker must bind to `0.0.0.0` and map its container port (`5000`) to a host port to be reachable outside the container.
-   - **Fix:** Kept `app.run(host="0.0.0.0", port=5000)` in `app.py`, exposed port `5000` in `Dockerfile`, and published the port with `-p` during `docker run` (using `5001:5000` on macOS if port `5000` is used by AirPlay Receiver).
+3. **Unpinned dependency in `requirements.txt`**
+   - **Problem:** `requirements.txt` listed `flask` without a version pin, which risks non-reproducible builds across local machines and CI runners.
+   - **Fix:** Pinned Flask to `flask==3.1.0` in `requirements.txt`.
+
+4. **Missing automated CI build check**
+   - **Problem:** Without a CI workflow, broken `Dockerfile` or dependency changes could go unnoticed until manual testing.
+   - **Fix:** Added `.github/workflows/build.yml` using `actions/checkout@v4`, `docker/setup-buildx-action@v3`, and `docker/build-push-action@v6` (`push: false`) to build and verify the Docker image on every `push`.
 
 ---
 
