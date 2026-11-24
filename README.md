@@ -68,15 +68,19 @@ Run the container and test `/health` (replace `5001` with `5000` if you mapped `
 curl -i http://localhost:5001/health
 ```
 
-Expected output (paste your local terminal output or screenshot here after running):
+Verified terminal output:
 
 ```text
 HTTP/1.1 200 OK
+Server: Werkzeug/3.1.9 Python/3.12.16
 Content-Type: application/json
-...
+Content-Length: 16
+Connection: close
 
 {"status":"ok"}
 ```
+
+![Health check output](./Screenshot%202026-11-25%20at%203.22.33%E2%80%AFAM.png)
 
 You can also verify the root route:
 
