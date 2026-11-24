@@ -15,19 +15,12 @@ A containerized Python Flask application with a GitHub Actions CI workflow that 
 
 The original starter snippet failed to start (making the app unreachable) due to the following issues:
 
-1. **Stray `Python` line at the top of `app.py`**
-   - **Problem:** The top of `app.py` contained a stray `Python` line, causing a syntax/name error before Flask could run.
-   - **Fix:** Removed the stray line so `from flask import Flask` is the first line.
 
-2. **Missing `=` operator and indentation in `app.py`**
+1. **Missing `=` operator and indentation in `app.py`**
    - **Problem:** `app Flask(__name__)` was missing `=`, and the bodies of `home()`, `health()`, and `if __name__ == "__main__":` were not indented (`IndentationError`).
    - **Fix:** Fixed `app = Flask(__name__)` and properly indented the route handlers and `app.run(host="0.0.0.0", port=5000)`.
 
-3. **Stray `None` line and unpinned dependency in `requirements.txt`**
-   - **Problem:** `requirements.txt` contained a stray `None` line and an unpinned `flask` entry.
-   - **Fix:** Removed `None` and pinned `flask==3.1.0` in `requirements.txt`.
-
-4. **Host binding and port publishing for container access**
+2. **Host binding and port publishing for container access**
    - **Problem:** A Flask app inside Docker must bind to `0.0.0.0` and map its container port (`5000`) to a host port to be reachable outside the container.
    - **Fix:** Kept `app.run(host="0.0.0.0", port=5000)` in `app.py`, exposed port `5000` in `Dockerfile`, and published the port with `-p` during `docker run` (using `5001:5000` on macOS if port `5000` is used by AirPlay Receiver).
 
